@@ -21,6 +21,12 @@ const inputVariants = cva(
         sm: 'h-[55px] w-[335px] py-3 text-sm font-normal placeholder:text-sm placeholder:font-normal',
         md: 'h-[55px] w-[440px] py-3 text-sm font-normal placeholder:text-sm placeholder:font-normal',
         lg: 'h-[70px] w-[640px] py-4 text-base font-normal placeholder:text-base placeholder:font-normal',
+        'product-sm':
+          'h-[55px] w-[335px] py-3 text-sm font-normal placeholder:text-sm placeholder:font-normal',
+        'product-md':
+          'h-[60px] w-[360px] py-3 text-sm font-normal placeholder:text-sm placeholder:font-normal',
+        'product-lg':
+          'h-[70px] w-[400px] py-4 text-base font-normal placeholder:text-base placeholder:font-normal',
       },
     },
     defaultVariants: {
