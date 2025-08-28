@@ -7,6 +7,7 @@ import { SignupFormData, signupSchema } from '@/lib/schemas';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/button';
+import { signUpAPI, transformUser, setAuthToken } from '@/lib/authApi';
 
 export default function SignupForm() {
   const router = useRouter();
@@ -23,19 +24,20 @@ export default function SignupForm() {
     try {
       setLoading(true);
 
-      // TODO: 실제 회원가입 API 호출
-      console.log('회원가입 시도:', data);
-
-      // 임시: 회원가입 성공 시 사용자 정보 생성
-      const mockUser = {
-        id: 'newuser123',
+      // 가입 API
+      const result = await signUpAPI({
         email: data.email,
         nickname: data.nickname,
-        profileImage: undefined,
-      };
+        password: data.password,
+        passwordConfirmation: data.confirmPassword,
+      });
 
-      // Zustand store에 자동 로그인 처리
-      login(mockUser);
+      // 토큰 저장
+      setAuthToken(result.accessToken);
+
+      // 사용자 정보 store에 저장
+      const user = transformUser(result.user);
+      login(user);
 
       // 회원가입 완료 후 홈으로 이동
       router.push('/');

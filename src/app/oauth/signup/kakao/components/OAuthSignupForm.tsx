@@ -7,6 +7,7 @@ import { OAuthSignupFormData, oauthSignupSchema } from '@/lib/schemas';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/button';
+import { kakaoSignUpWithToken } from '@/lib/kakaoAuth';
 
 export default function OAuthSignupForm() {
   const router = useRouter();
@@ -24,35 +25,55 @@ export default function OAuthSignupForm() {
     try {
       setLoading(true);
 
-      // TODO: 실제 간편 회원가입 API 호출
-      console.log('카카오 간편 회원가입 시도:', data);
+      const kakaoToken = sessionStorage.getItem('kakaoToken');
 
-      // TODO: 닉네임 중복 확인 API 호출
-      const isDuplicateNickname = false; // 임시
-
-      if (isDuplicateNickname) {
-        setError('nickname', {
-          type: 'manual',
-          message: '이미 사용중인 닉네임입니다.',
-        });
+      if (!kakaoToken) {
+        alert('카카오 인증 정보가 없습니다. 다시 로그인해 주세요.');
+        router.push('/signin');
         return;
       }
 
-      // 임시: OAuth에서 받은 정보 + 입력한 닉네임으로 사용자 생성
-      const mockUser = {
-        id: 'kakaouser123',
-        email: 'kakao@example.com', // TODO: OAuth에서 받은 이메일
-        nickname: data.nickname,
-        profileImage: undefined, // TODO: OAuth에서 받은 프로필 이미지
-      };
+      console.log('카카오 토큰 회원가입 시작:', data.nickname);
 
-      // Zustand store에 자동 로그인 처리
-      login(mockUser);
+      // 페이지에서 이미 로그인 체크를 했으므로 바로 회원가입 시도 (토큰 사용)
+      console.log('토큰으로 회원가입 시도...');
+      const signUpData = await kakaoSignUpWithToken(kakaoToken, data.nickname);
 
-      // 회원가입 완료 후 홈으로 이동
+      // 토큰 저장 및 로그인 처리
+      localStorage.setItem('auth-token', signUpData.accessToken);
+      login({
+        id: signUpData.user.id.toString(),
+        email: signUpData.user.email,
+        nickname: signUpData.user.nickname,
+        profileImage: signUpData.user.image || undefined,
+      });
+
+      // 세션 스토리지 정리
+      sessionStorage.removeItem('kakaoToken');
+      sessionStorage.removeItem('kakaoUserInfo');
+
+      console.log('카카오 토큰 회원가입 완료');
       router.push('/');
-    } catch {
-      alert('간편 회원가입에 실패했습니다.');
+    } catch (error: unknown) {
+      console.error('=== 카카오 회원가입 에러 상세 ===');
+      console.error('에러 객체:', error);
+
+      const errorMessage =
+        error instanceof Error ? error.message : '알 수 없는 에러가 발생했습니다.';
+      console.error('에러 메시지:', errorMessage);
+
+      // 일단 모든 에러를 alert로 표시해서 정확히 뭔 에러인지 확인
+      alert(`에러 발생: ${errorMessage}`);
+
+      if (error instanceof Error && error.message?.includes('닉네임')) {
+        setError('nickname', {
+          type: 'manual',
+          message: error.message,
+        });
+      } else {
+        // 다른 모든 에러는 일단 그냥 표시만 하고 아무것도 안함
+        console.error('처리되지 않은 에러:', errorMessage);
+      }
     } finally {
       setLoading(false);
     }
