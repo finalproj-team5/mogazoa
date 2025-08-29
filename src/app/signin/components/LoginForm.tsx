@@ -7,6 +7,7 @@ import { SigninFormData, signinSchema } from '@/lib/schemas';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/lib/stores/authStore';
+import { signInAPI, transformUser, setAuthToken } from '@/lib/authApi';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -24,19 +25,18 @@ export default function LoginForm() {
     try {
       setLoading(true);
 
-      // TODO: 실제 로그인 API 호출
-      console.log('로그인 시도:', data);
-
-      // 임시: 로그인 성공 시뮬레이션
-      const mockUser = {
-        id: 'user123',
+      // 실제 로그인 API 호출
+      const result = await signInAPI({
         email: data.email,
-        nickname: '사용자',
-        profileImage: undefined,
-      };
+        password: data.password,
+      });
 
-      // Zustand store에 로그인 상태 저장
-      login(mockUser);
+      // 토큰 저장
+      setAuthToken(result.accessToken);
+
+      // 사용자 정보 store에 저장
+      const user = transformUser(result.user);
+      login(user);
 
       // 로그인 성공 시 홈으로 이동
       router.push('/');
