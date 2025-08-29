@@ -7,7 +7,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='ko'>
-      <body className='max-w-md mx-auto bg-gray-800'>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
