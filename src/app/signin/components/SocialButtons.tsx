@@ -12,35 +12,25 @@ export default function SocialButtons() {
 
   const handleSocialLogin = async (provider: SocialProvider) => {
     try {
-      // TODO: 실제 소셜 로그인 API 호출
+      if (provider === 'kakao') {
+        const clientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
+        const redirectUri = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
+
+        window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+        return;
+      }
+
+      // TODO: 구글 소셜 로그인 API 호출
       console.log(`${provider} 로그인 시도`);
 
-      // 임시: 소셜 로그인 시뮬레이션
+      // 임시: 소셜 로그인 시뮬레이션 (구글용)
       const loginResult = {
         success: true,
         isNewUser: true, // true면 간편 회원가입 화면으로
       };
       if (loginResult.success) {
-        console.log('provider:', provider);
-        console.log('isNewUser:', loginResult.isNewUser);
-        console.log('조건 체크:', loginResult.isNewUser && provider === 'kakao');
-
-        if (loginResult.isNewUser && provider === 'kakao') {
-          console.log('카카오 간편가입으로 이동');
-          router.push(`/oauth/signup/${provider}`);
-        } else {
-          console.log('홈으로 이동');
-          router.push('/');
-        }
-      }
-      if (loginResult.success) {
-        if (loginResult.isNewUser && provider === 'kakao') {
-          // 신규 유저이고 카카오인 경우 간편 회원가입으로
-          router.push(`/oauth/signup/${provider}`);
-        } else {
-          // 기존 유저이거나 구글인 경우 홈으로
-          router.push('/');
-        }
+        console.log('구글 로그인 성공, 홈으로 이동');
+        router.push('/');
       } else {
         // 소셜 로그인 실패
         alert('소셜 로그인에 실패했습니다.');
