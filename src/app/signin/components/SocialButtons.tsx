@@ -52,7 +52,6 @@ export default function SocialButtons() {
 
   return (
     <div className='w-full max-w-md mx-auto'>
-      {/* 구분선 */}
       <div className='relative my-8'>
         <div className='absolute inset-0 flex items-center'>
           <span className='w-full  border-[#353542]' />
