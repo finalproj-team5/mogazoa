@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 // import ReviewerRanking from './ReviewerRanking';
 // import MobileCategorySheet from './MobileCategorySheet';
 import ProductGrid from '@/components/common/ProductGrid';
@@ -120,7 +119,7 @@ const categories = [
   },
 ];
 
-export default function Home() {
+const Home = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
@@ -173,10 +172,8 @@ export default function Home() {
           <ReviewerRanking key={review.id} {...review} />
         ))}
       </div> */}
-
-      <Button variant='outline' className='ml-4'>
-        Outline
-      </Button>
     </main>
   );
-}
+};
+
+export default Home;
