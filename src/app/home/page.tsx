@@ -1,10 +1,9 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 // import ReviewerRanking from './ReviewerRanking';
 // import MobileCategorySheet from './MobileCategorySheet';
 import ProductGrid from '@/components/common/ProductGrid';
-// import { useState } from 'react';
+import { useState } from 'react';
 
 const products = [
   {
@@ -57,40 +56,124 @@ const products = [
   },
 ];
 
-export default function Home() {
-  //   const [category, setCategory] = useState('전체');
-  //   const categories = [1, 2, 3, 4, 5];
+const categories = [
+  {
+    id: 1,
+    name: '음악',
+    createdAt: '2024-01-29T09:08:53.506Z',
+    updatedAt: '2024-01-29T09:08:53.506Z',
+  },
+  {
+    id: 2,
+    name: '영화/드라마',
+    createdAt: '2024-01-29T09:08:53.506Z',
+    updatedAt: '2024-01-29T09:08:53.506Z',
+  },
+  {
+    id: 3,
+    name: '강의/책',
+    createdAt: '2024-01-29T09:08:53.506Z',
+    updatedAt: '2024-01-29T09:08:53.506Z',
+  },
+  {
+    id: 4,
+    name: '호텔',
+    createdAt: '2024-01-29T09:08:53.506Z',
+    updatedAt: '2024-01-29T09:08:53.506Z',
+  },
+  {
+    id: 5,
+    name: '가구/인테리어',
+    createdAt: '2024-01-29T09:08:53.506Z',
+    updatedAt: '2024-01-29T09:08:53.506Z',
+  },
+  {
+    id: 6,
+    name: '식당',
+    createdAt: '2024-01-29T09:08:53.506Z',
+    updatedAt: '2024-01-29T09:08:53.506Z',
+  },
+  {
+    id: 7,
+    name: '전자기기',
+    createdAt: '2024-01-29T09:08:53.506Z',
+    updatedAt: '2024-01-29T09:08:53.506Z',
+  },
+  {
+    id: 8,
+    name: '화장품',
+    createdAt: '2024-01-29T09:08:53.506Z',
+    updatedAt: '2024-01-29T09:08:53.506Z',
+  },
+  {
+    id: 9,
+    name: '의류/잡화',
+    createdAt: '2024-01-29T09:08:53.506Z',
+    updatedAt: '2024-01-29T09:08:53.506Z',
+  },
+  {
+    id: 10,
+    name: '앱',
+    createdAt: '2024-01-29T09:08:53.506Z',
+    updatedAt: '2024-01-29T09:08:53.506Z',
+  },
+];
+
+const Home = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
   return (
-    <main className='flex flex-col items-center justify-center p-24'>
-      {/* <aside className='hidden md:flex gap-4'>
-        {/* pc버전에서는 그냥 메뉴 */}
-      {/* {categories.map((category) => (
-          <button key={category}>{category}</button>
-        ))} */}
-      {/* </aside> */}
-      {/* <aside className='flex md:hidden'>
-        <MobileCategorySheet onSelect={setCategory} />
-      </aside> */}
-      <div className='md:w-[564px] lg:w-940 max-w-[940px] ml-[90px] mr-[60px]'>
-        <ProductGrid title='가장 핫한 상품 TOP 6' products={products} />
+    <main className='flex items-center justify-center p-24'>
+      {/* pc버전에서는 그냥 메뉴 */}
+      <aside className='hidden md:flex flex-col gap-4'>
+        <div className='text-[#F1F1F5] gap-1 '>카테고리</div>
+        {categories.map((category) => {
+          const isSelected = category.id === selectedCategoryId;
+          return (
+            <button
+              key={category.id}
+              onClick={() => setSelectedCategoryId(category.id)}
+              className={`text-left whitespace-nowrap px-4 py-[15px] gap-[10px] rounded text-sm md:text-base
+                ${isSelected ? 'text-[#F1F1F5] bg-[#252530]' : 'text-[#6E6E82]'}`}
+            >
+              {category.name}
+            </button>
+          );
+        })}
+      </aside>
+
+      {/* 그 머냐 버튼 누르면 메뉴창 나오게 하는거 */}
+      <div className='md:hidden'>
+        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}></button>
       </div>
-      {/* PC 버전: grid */}
-      {/* <div className='hidden md:grid grid-cols-4 gap-4'>
-        {reviewers.map((review) => (
-          <ReviewerRanking key={review.id} {...review} />
-        ))}
-      </div> */}
-      {/* 모바일 버전: 가로 스크롤 */}
-      {/* <div className='flex md:hidden overflow-x-auto space-x-4 scrollbar-hide'>
+
+      {/* 위에서 분부하신 메뉴창 */}
+      {/* <aside className='flex md:hidden'>
+        <MobileCategorySheet onSelect={setCategories} />
+      </aside> */}
+
+      {/* 태블릿/모바일 버전: 가로 스크롤 */}
+      {/* <div className='flex lg:hidden overflow-x-auto space-x-4 scrollbar-hide'>
         {reviewers.map((review) => (
           <ReviewerRanking key={review.id} {...review} />
         ))}
       </div> */}
 
-      <Button variant='outline' className='ml-4'>
-        Outline
-      </Button>
+      <section>
+        <div className='md:w-[564px] lg:w-940 max-w-[940px] ml-[90px] mr-[60px]'>
+          <ProductGrid title='가장 핫한 상품 TOP 6' products={products} />
+        </div>
+      </section>
+
+      {/* PC 버전: grid */}
+      {/* <div className='hidden lg:grid flex-col gap-4'>
+        {reviewers.map((review) => (
+          <ReviewerRanking key={review.id} {...review} />
+        ))}
+      </div> */}
     </main>
   );
-}
+};
+
+export default Home;
