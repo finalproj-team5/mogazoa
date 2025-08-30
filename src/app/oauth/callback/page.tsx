@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuthStore } from '@/lib/stores/authStore';
 
 export default function OAuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login } = useAuthStore();
 
   useEffect(() => {
     const code = searchParams.get('code');
@@ -30,6 +32,15 @@ export default function OAuthCallbackPage() {
       if (signInResult) {
         console.log('기존 회원 로그인 성공:', signInResult);
         localStorage.setItem('auth-token', signInResult.accessToken);
+
+        // authStore에 사용자 정보 저장 (전역상태 업데이트)
+        login({
+          id: signInResult.user.id,
+          email: signInResult.user.email,
+          nickname: signInResult.user.nickname,
+          profileImage: signInResult.user.image,
+        });
+
         setLoginResult({ status: 'success' });
         router.push('/');
         return;
