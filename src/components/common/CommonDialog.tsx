@@ -35,7 +35,6 @@ export function CommonDialog<T extends { id: number; name: string }>({
 
         <div className='flex justify-end gap-2 pt-4'>
           <Button
-            variant='outline'
             onClick={() => {
               onOpenChange(false); // 취소 → 부모 데이터 변경 없음
             }}
