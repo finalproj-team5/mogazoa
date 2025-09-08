@@ -10,7 +10,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { name, reviewCount, rating, favoriteCount } = product;
 
   return (
-    <div className='p-2.5 md:pb-[10px] bg-zinc-800 rounded-lg flex flex-col '>
+    <div className='p-2.5 md:pb-[10px] bg-[#252530] rounded-lg flex flex-col '>
       {/* 이미지 영역: 카드 폭에 맞춰 반응형, 비율 140:98 유지 */}
       <div className='w-full aspect-[140/98] mb-[10px] relative'>
         <Image src={rilakkuma} alt={name} fill className='object-cover rounded-xl' />
