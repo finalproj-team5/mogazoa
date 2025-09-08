@@ -24,7 +24,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   // 나중에 실제 API를 연결할 때 이 productData 부분을 API 호출 결과로 교체하기
 
   return (
-    <div className='bg-gray-900 text-white min-h-screen'>
+    <div className='bg-[#1C1C22] text-white min-h-screen'>
       <main className='max-w-screen-lg mx-auto px-4 sm:px-6 py-12'>
         {/* 상단 섹션: 이미지와 정보 */}
         <section className='grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8'>

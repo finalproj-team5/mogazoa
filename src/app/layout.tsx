@@ -8,7 +8,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='ko'>
-      <body className='bg-gray-900'>
+      <body className='bg-[#1C1C22]'>
         <Header />
         <main>{children}</main>
       </body>

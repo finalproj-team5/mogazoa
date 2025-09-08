@@ -13,7 +13,7 @@ export const ProductResultCard: React.FC<{
   // 비교 전 UI
   if (!comparisonResult || !product) {
     return (
-      <div className='w-full h-56 bg-gray-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center'>
+      <div className='w-full h-56 bg-[#2E2E3A] rounded-2xl p-4 flex flex-col items-center justify-center text-center'>
         <div className='flex-grow w-full flex items-center justify-center relative'>
           <Image
             src={characterIcon}
@@ -41,7 +41,7 @@ export const ProductResultCard: React.FC<{
   );
 
   return (
-    <div className='w-full bg-gray-800 rounded-2xl p-6 flex flex-col items-center justify-around text-center h-56'>
+    <div className='w-full bg-white/5 rounded-2xl p-6 flex flex-col items-center justify-around text-center h-56'>
       <StatItem
         value={(product.rating ?? 0).toFixed(1)}
         isWinner={comparisonResult.rating.winner === productLetter}
