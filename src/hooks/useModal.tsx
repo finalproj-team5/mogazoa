@@ -1,13 +1,16 @@
 import { ReactElement, useCallback, useState } from 'react';
 
 const useModal = () => {
-  const [isOpen, setisOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const openModal = useCallback(() => setisOpen(true), []);
-  const closeModal = useCallback(() => setisOpen(false), []);
+  const openModal = useCallback(() => setIsOpen(true), []);
+  const closeModal = useCallback(() => setIsOpen(false), []);
 
   const renderModal = useCallback(
-    (ModalComponent: React.ElementType, props: any = {}): ReactElement | null =>
+    <T extends object>(
+      ModalComponent: React.ComponentType<T & { isOpen: boolean; onClose: () => void }>,
+      props: T,
+    ): ReactElement | null =>
       isOpen ? <ModalComponent {...props} isOpen={isOpen} onClose={closeModal} /> : null,
     [isOpen, closeModal],
   );
