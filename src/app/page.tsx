@@ -16,6 +16,7 @@ const products = [
     reviewCount: 120,
     rating: 4.8,
     favoriteCount: 5,
+    categoryId: 1,
   },
   {
     id: 2,
@@ -24,6 +25,7 @@ const products = [
     reviewCount: 98,
     rating: 4.6,
     favoriteCount: 213,
+    categoryId: 2,
   },
   {
     id: 3,
@@ -32,6 +34,7 @@ const products = [
     reviewCount: 75,
     rating: 4.2,
     favoriteCount: 123,
+    categoryId: 2,
   },
   {
     id: 4,
@@ -40,6 +43,7 @@ const products = [
     reviewCount: 150,
     rating: 4.9,
     favoriteCount: 234,
+    categoryId: 2,
   },
   {
     id: 5,
@@ -48,6 +52,7 @@ const products = [
     reviewCount: 60,
     rating: 4.4,
     favoriteCount: 6,
+    categoryId: 1,
   },
   {
     id: 6,
@@ -56,11 +61,14 @@ const products = [
     reviewCount: 124,
     rating: 4.2,
     favoriteCount: 7,
+    categoryId: 3,
   },
 ];
 
+const hotProducts = [...products]
+  .sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0))
+  .slice(0, 6);
 const Home = () => {
-  // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -76,9 +84,13 @@ const Home = () => {
     fetchCategories();
   }, []);
 
+  const filteredProducts = selectedCategoryId
+    ? products.filter((stuff) => stuff.categoryId === selectedCategoryId)
+    : products;
+
   return (
-    <main className='flex m-5'>
-      {/* pc버전에서는 그냥 메뉴 */}
+    <main className='flex justify-between mt-5 gap-[30px]'>
+      {/* PC/tablet 카테고리 */}
       <aside className='hidden md:flex flex-col p-2.5 md:pt-[45px] gap-1 w-45 lg:w-55'>
         <CategoryList
           categories={categories}
@@ -86,7 +98,8 @@ const Home = () => {
           onSelect={setSelectedCategoryId}
         />
       </aside>
-      {/* 위에서 분부하신 메뉴창 */}
+
+      {/* 모바일 카테고리 */}
       <aside className='md:hidden'>
         <MobileCategorySheet
           categories={categories}
@@ -94,19 +107,29 @@ const Home = () => {
           onSelect={setSelectedCategoryId}
         />
       </aside>
-      <section className=' flex flex-col lg:flex-row '>
-        {/* 태블릿/모바일 버전: 가로 스크롤 */}
+
+      <section className='flex flex-col lg:flex-row flex-1 min-w-0 '>
+        {/* [리뷰어 랭킹] Tablet/Mobile : Row-sroll */}
         <div className='grid grid-cols-2 lg:hidden overflow-x-auto space-x-4 mb-[60px]'>
           <ReviewerRanking />
         </div>
-        <div className='flex flex-col justify-center flex-1'>
-          <ProductGrid title='지금 핫한 상품' products={products} />
-        </div>
-        {/* PC 버전: grid */}
-        <div className='hidden lg:flex flex-col'>
-          <ReviewerRanking />
+
+        {/* [상품 그리드]: 중앙정렬 제거, 남은 폭 사용 */}
+        <div className='flex flex-col flex-1 min-w-0 lg:max-w-5xl'>
+          <ProductGrid
+            title={
+              selectedCategoryId
+                ? `${categories.find((c) => c.id === selectedCategoryId)?.name ?? ''}의 모든 상품`
+                : '지금 핫한 상품'
+            }
+            products={selectedCategoryId ? filteredProducts : hotProducts}
+          />
         </div>
       </section>
+      {/* [리뷰어 랭킹] PC 고정 너비 + shrink 방지 + 상단정렬 */}
+      <div className='hidden lg:block w-[250px] '>
+        <ReviewerRanking />
+      </div>
     </main>
   );
 };

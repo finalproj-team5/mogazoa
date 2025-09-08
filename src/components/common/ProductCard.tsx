@@ -10,7 +10,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { name, reviewCount, rating, favoriteCount } = product;
 
   return (
-    <div className='p-2.5 md:pb-[20px] bg-zinc-800 rounded-lg flex flex-col '>
+    <div className='p-2.5 md:pb-[10px] bg-zinc-800 rounded-lg flex flex-col '>
       {/* 이미지 영역: 카드 폭에 맞춰 반응형, 비율 140:98 유지 */}
       <div className='w-full aspect-[140/98] mb-[10px] relative'>
         <Image src={rilakkuma} alt={name} fill className='object-cover rounded-xl' />
@@ -18,7 +18,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       {/* 텍스트 영역 */}
       <div className='flex flex-col gap-[5px] flex-1'>
-        <div className='text-[#F1F1F5] text-sm md:text-base lg:text-lg font-medium'>{name}</div>
+        <div className='text-[#F1F1F5] text-sm md:text-base xl:text-lg font-medium'>{name}</div>
 
         <div className='inline-flex gap-2.5'>
           <div className='flex gap-[5px]'>

@@ -11,6 +11,7 @@ export default function RootLayout({
       <body className='bg-[#1C1C22]'>
         <Header />
         <main>{children}</main>
+        <div id='modal'></div>
       </body>
     </html>
   );

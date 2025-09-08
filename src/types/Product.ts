@@ -6,6 +6,7 @@ export interface Product {
   rating?: number;
   reviewCount?: number;
   favoriteCount?: number;
+  categoryId: number;
 }
 
 export interface ProductGridProps {
