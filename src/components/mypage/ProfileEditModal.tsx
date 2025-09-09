@@ -87,7 +87,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
   return (
     <Dialog isOpen={isOpen} onClose={handleCancel} className=''>
-      <div className='w-[672px] bg-[#21212A] rounded-xl p-8 text-[#F1F1F5] relative'>
+      <div className='w-[calc(100vw-40px)] md:w-[672px] bg-[#21212A] rounded-xl p-8 text-[#F1F1F5] relative'>
         {/* 상단 헤더 - 제목 좌측 정렬, X버튼 우측 */}
         <div className='flex justify-between items-center mb-6'>
           <h2 className='text-xl font-bold'>프로필 편집</h2>
@@ -144,7 +144,6 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
             className='hidden'
           />
         </div>
-        <p className='text-sm text-[#9FA0A7] mb-6'>이미지를 클릭해서 변경하세요</p>
 
         {/* 닉네임 입력 */}
         <div className='mb-4'>
