@@ -1,58 +1,46 @@
-'use client';
+import ProductImages from './components/ProductImages';
+import ProductInfo from './components/ProductInfo';
+import ProductStats from './components/ProductStats';
+import ReviewSection from './components/ReviewSection';
 
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { DialogTitle } from '@radix-ui/react-dialog';
-import { ChangeEvent, useState } from 'react';
+// UI 확인을 위한 예시(mock) 데이터
+const productData = {
+  id: '123',
+  category: '전자기기',
+  name: 'Sony WH-1000XM3',
+  description:
+    '업계 최고 수준의 노이즈 캔슬링을 자랑하는 무선 헤드폰입니다. 몰입의 즐거움을 경험해 보세요.',
+  imageUrl: '/images/reviewers/user1.jpg',
+  stats: {
+    rating: 4.9,
+    reviewCount: 154,
+    wishCount: 566,
+  },
+};
 
-export default function Product() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [name, setName] = useState('dfdfd');
-  const handleSubmit = () => {
-    alert(`${name}을 제출하겠습니다.`);
-    setIsOpen(false);
-    setName('');
-  };
+export default function ProductPage({ params }: { params: { id: string } }) {
+  const { id: productId } = params;
+
+  // 나중에 실제 API를 연결할 때 이 productData 부분을 API 호출 결과로 교체하기
 
   return (
-    <>
-      {name}
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          <Button
-            onClick={() => {
-              setIsOpen(true);
-            }}
-          >
-            모달열기
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>제목부분</DialogTitle>
-            <DialogDescription>
-              <input
-                id='inputField'
-                type='text'
-                placeholder='여기입력'
-                value={name}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-              />
-            </DialogDescription>
-          </DialogHeader>
-          <div>
-            <Button className='flex justify-end space-x-2' onClick={handleSubmit}>
-              제출
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    <div className='bg-[#1C1C22] text-white min-h-screen'>
+      <main className='max-w-screen-lg mx-auto px-4 sm:px-6 py-12'>
+        {/* 상단 섹션: 이미지와 정보 */}
+        <section className='grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8'>
+          {/* 왼쪽: 상품 이미지 */}
+          <ProductImages imageUrl={productData.imageUrl} productName={productData.name} />
+
+          {/* 오른쪽: 상품 정보 */}
+          <ProductInfo product={productData} />
+        </section>
+
+        {/* 중단 섹션: 통계 */}
+        <ProductStats stats={productData.stats} />
+
+        {/* 하단 섹션: 리뷰 */}
+        <ReviewSection productId={productId} />
+      </main>
+    </div>
   );
 }

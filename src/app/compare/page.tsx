@@ -97,7 +97,7 @@ export default function ComparisonPage() {
   const viewProps = { productA, productB, comparisonResult, handleProductSelect };
 
   return (
-    <div className='w-full min-h-screen font-sans bg-gray-900 text-white'>
+    <div className='w-full min-h-screen font-sans bg-[#1C1C22] text-white'>
       {/* --- 메인 콘텐츠 --- */}
       <main className='w-full max-w-md md:max-w-5xl lg:max-w-7xl mx-auto pt-12 pb-40 px-4'>
         <h1 className='text-3xl md:text-4xl font-bold text-center text-gray-200 mb-10'>
