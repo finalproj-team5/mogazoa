@@ -1,5 +1,9 @@
-import './globals.css';
+'use client';
+
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/lib/react-query';
 import Header from '@/components/common/Header';
+import './globals.css';
 
 export default function RootLayout({
   children,
@@ -9,9 +13,11 @@ export default function RootLayout({
   return (
     <html lang='ko'>
       <body className='bg-[#1C1C22]'>
-        <Header />
-        <main>{children}</main>
-        <div id='modal'></div>
+        <QueryClientProvider client={queryClient}>
+          <Header />
+          <main>{children}</main>
+          <div id='modal'></div>
+        </QueryClientProvider>
       </body>
     </html>
   );
