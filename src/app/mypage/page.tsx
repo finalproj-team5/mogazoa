@@ -1,7 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { getUserProfile, UserDetail } from '@/lib/user/userApi';
+import { useRouter } from 'next/navigation';
+import {
+  UserDetail,
+  getMyProfile,
+  updateMyProfile,
+  uploadImage,
+  UpdateUserData,
+} from '@/lib/user/userApi';
 import {
   getUserReviewedProducts,
   getUserCreatedProducts,
@@ -18,6 +25,7 @@ import ProfileEditModal from '@/components/mypage/ProfileEditModal';
 import useModal from '@/hooks/useModal';
 
 const MyPage = () => {
+  const router = useRouter();
   const { user, logout } = useAuthStore();
   const [profile, setProfile] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,7 +106,8 @@ const MyPage = () => {
 
       try {
         setLoading(true);
-        const data = await getUserProfile(user.id);
+        // 마이페이지이므로 내 정보 조회 API 사용
+        const data = await getMyProfile();
         setProfile(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load profile');
@@ -110,21 +119,21 @@ const MyPage = () => {
     fetchProfile();
   }, [user?.id, isHydrated]);
 
-  // 무한스크롤 탭들 초기화
+  // 무한스크롤 탭들 초기화 (프로필이 처음 로드될 때만)
   useEffect(() => {
-    if (profile && activeTab === 'reviewed') {
+    if (profile && activeTab === 'reviewed' && reviewedProducts.items.length === 0) {
       reviewedProducts.reset();
     }
   }, [profile, activeTab]);
 
   useEffect(() => {
-    if (profile && activeTab === 'created') {
+    if (profile && activeTab === 'created' && createdProducts.items.length === 0) {
       createdProducts.reset();
     }
   }, [profile, activeTab]);
 
   useEffect(() => {
-    if (profile && activeTab === 'favorite') {
+    if (profile && activeTab === 'favorite' && favoriteProducts.items.length === 0) {
       favoriteProducts.reset();
     }
   }, [profile, activeTab]);
@@ -149,21 +158,39 @@ const MyPage = () => {
     description: string;
     image: File | null;
   }) => {
-    // TODO: API 호출로 프로필 업데이트
-    console.log('프로필 저장:', data);
-    showToast('프로필이 저장되었습니다.');
+    try {
+      const updateData: UpdateUserData = {
+        nickname: data.nickname,
+        description: data.description,
+      };
 
-    // 프로필 정보 다시 로드
-    if (user?.id) {
-      const updatedProfile = await getUserProfile(user.id);
+      // 이미지가 있으면 먼저 업로드
+      if (data.image) {
+        const imageResponse = await uploadImage(data.image);
+        updateData.image = imageResponse.url;
+      }
+
+      // 프로필 업데이트
+      await updateMyProfile(updateData);
+      showToast('프로필이 저장되었습니다.');
+
+      // 프로필 정보 다시 로드
+      const updatedProfile = await getMyProfile();
       setProfile(updatedProfile);
+    } catch (error) {
+      console.error('프로필 저장 실패:', error);
+      showToast('프로필 저장에 실패했습니다.');
+      throw error; // 모달에서 에러 처리를 위해 throw
     }
   };
 
   const handleLogout = () => {
     logout();
     showToast('로그아웃되었습니다.');
-    // TODO: 홈페이지로 리다이렉트
+    // 홈페이지로 리다이렉트
+    setTimeout(() => {
+      router.push('/');
+    }, 1500); // 토스트 표시 후 리다이렉트
   };
 
   // 팔로우 모달 열기
@@ -274,19 +301,33 @@ const MyPage = () => {
               <h2 className='text-xl font-bold mb-4'>활동 내역</h2>
 
               {/* 통계 카드들 */}
-              <div className='flex flex-col md:flex-row gap-4 mb-6'>
-                <div className='bg-[#21212A] rounded-xl p-4 text-center w-full md:w-[300px] h-[128px] flex flex-col justify-center'>
-                  <div className='text-[#9FA0A7] text-sm mb-2'>남긴 별점 평균</div>
+              <div className='flex flex-row gap-4 mb-6'>
+                <div className='bg-[#21212A] rounded-xl p-4 text-center flex-1 lg:w-[300px] lg:flex-none h-[128px] flex flex-col justify-center'>
+                  <div className='text-[#9FA0A7] text-sm mb-2'>
+                    <span className='md:hidden'>
+                      남긴
+                      <br />
+                      별점 평균
+                    </span>
+                    <span className='hidden md:block'>남긴 별점 평균</span>
+                  </div>
                   <div className='text-2xl font-bold text-[#FFD700]'>
                     ⭐ {profile.averageRating}
                   </div>
                 </div>
-                <div className='bg-[#21212A] rounded-xl p-4 text-center w-full md:w-[300px] h-[128px] flex flex-col justify-center'>
+                <div className='bg-[#21212A] rounded-xl p-4 text-center flex-1 lg:w-[300px] lg:flex-none h-[128px] flex flex-col justify-center'>
                   <div className='text-[#9FA0A7] text-sm mb-2'>남긴 리뷰</div>
                   <div className='text-2xl font-bold text-[#5097FA]'>📝 {profile.reviewCount}</div>
                 </div>
-                <div className='bg-[#21212A] rounded-xl p-4 text-center w-full md:w-[300px] h-[128px] flex flex-col justify-center'>
-                  <div className='text-[#9FA0A7] text-sm mb-2'>관심 카테고리</div>
+                <div className='bg-[#21212A] rounded-xl p-4 text-center flex-1 lg:w-[300px] lg:flex-none h-[128px] flex flex-col justify-center'>
+                  <div className='text-[#9FA0A7] text-sm mb-2'>
+                    <span className='md:hidden'>
+                      관심
+                      <br />
+                      카테고리
+                    </span>
+                    <span className='hidden md:block'>관심 카테고리</span>
+                  </div>
                   <div className='text-lg font-medium text-[#00D2A3]'>
                     {profile.mostFavoriteCategory ? profile.mostFavoriteCategory.name : '없음'}
                   </div>
