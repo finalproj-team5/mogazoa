@@ -5,7 +5,7 @@ import { getAuthToken } from '@/lib/authApi';
 
 // 상품 목록 조회 API
 export const getProductList = async (params?: GetProductsParams): Promise<ProductListResponse> => {
-  const response = await apiClient.get(`/16-5/products`, {
+  const response = await apiClient.get(`/products`, {
     params,
     headers: {
       Authorization: `Bearer ${getAuthToken}}`, // 필요에 따라 수정

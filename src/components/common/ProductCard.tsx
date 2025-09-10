@@ -1,19 +1,18 @@
 import { Product } from '@/types/Product';
 import Image from 'next/image';
-import rilakkuma from './리락쿠마.jpg';
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const { name, reviewCount, rating, favoriteCount } = product;
+  const { name, reviewCount, rating, favoriteCount, image } = product;
 
   return (
     <div className='p-2.5 md:pb-[10px] bg-[#252530] rounded-lg flex flex-col '>
       {/* 이미지 영역: 카드 폭에 맞춰 반응형, 비율 140:98 유지 */}
       <div className='w-full aspect-[140/98] mb-[10px] relative'>
-        <Image src={rilakkuma} alt={name} fill className='object-cover rounded-xl' />
+        <Image src={image} alt={name} fill className='object-cover rounded-xl' />
       </div>
 
       {/* 텍스트 영역 */}
