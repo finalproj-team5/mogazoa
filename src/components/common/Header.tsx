@@ -17,7 +17,7 @@ const headerVariants = cva('w-full relative z-50 transition-all duration-300 eas
   variants: {
     variant: {
       home: 'bg-transparent',
-      default: 'bg-gray-900',
+      default: 'bg-[#1C1C22]',
     },
   },
   defaultVariants: {

@@ -50,7 +50,7 @@ export const ProductSearchInput: React.FC<{
             placeholder={placeholder}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className={`w-full py-3 px-6 text-center rounded-full bg-gray-900 text-white focus:outline-none ${selectedProduct ? 'font-semibold pr-10 bg-gray-700' : ''}`}
+            className={`w-full py-3 px-6 text-center rounded-full bg-[#252530] text-white focus:outline-none ${selectedProduct ? 'font-semibold pr-10 bg-gray-700' : ''}`}
             readOnly={!!selectedProduct}
           />
           {selectedProduct && (

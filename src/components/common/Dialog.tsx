@@ -29,7 +29,7 @@ function Dialog({ isOpen, onClose, children }: modalProps) {
       className='fixed top-0 left-0 w-full h-full bg-black/70 z-[999] flex items-center justify-center'
       onClick={handleOverlayClick}
     >
-      <div className='p-6 flex flex-col items-center bg-white rounded-lg'>{children}</div>
+      <div className='flex flex-col items-center rounded-lg'>{children}</div>
     </div>,
     portalNode,
   );
