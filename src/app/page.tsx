@@ -16,6 +16,8 @@ const Home = () => {
   // 상품 목록 가져오기
   const { data, isLoading, isError } = useGetProducts();
 
+  const products = data?.list ?? [];
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -27,9 +29,6 @@ const Home = () => {
     };
     fetchCategories();
   }, []);
-
-  // 상품 리스트 (없으면 빈 배열)
-  const products = data?.products ?? [];
 
   // 카테고리별 필터링
   const filteredProducts = selectedCategoryId
