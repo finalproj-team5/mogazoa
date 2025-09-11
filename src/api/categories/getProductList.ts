@@ -8,7 +8,7 @@ export const getProductList = async (params?: GetProductsParams): Promise<Produc
   const response = await apiClient.get(`/products`, {
     params,
     headers: {
-      Authorization: `Bearer ${getAuthToken}}`, // 필요에 따라 수정
+      Authorization: `Bearer ${getAuthToken}`,
     },
   });
   return response.data;
