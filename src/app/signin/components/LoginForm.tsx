@@ -63,7 +63,8 @@ export default function LoginForm() {
           label='이메일'
           type='email'
           placeholder='이메일을 입력해 주세요'
-          size='lg'
+          size='sm'
+          className='md:w-[440px] md:h-[55px] lg:w-[640px] lg:h-[70px]'
           {...register('email')}
           variant={errors.email ? 'error' : 'default'}
           errorMessage={errors.email?.message}
@@ -74,14 +75,20 @@ export default function LoginForm() {
           label='비밀번호'
           type='password'
           placeholder='비밀번호를 입력해 주세요'
-          size='lg'
+          size='sm'
+          className='md:w-[440px] md:h-[55px] lg:w-[640px] lg:h-[70px]'
           {...register('password')}
           variant={errors.password ? 'error' : 'default'}
           errorMessage={errors.password?.message}
         />
 
         {/* 로그인 버튼 */}
-        <Button type='submit' variant='primary' size='lg' className='w-full'>
+        <Button
+          type='submit'
+          variant='primary'
+          size='sm'
+          className='w-[335px] md:w-[440px] md:h-[55px] lg:w-[640px] lg:h-[65px]'
+        >
           로그인
         </Button>
       </form>
