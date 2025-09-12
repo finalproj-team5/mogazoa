@@ -133,3 +133,69 @@ export const getFollowees = async (
 
   return response.json();
 };
+
+// 내 정보 조회 (마이페이지용)
+export const getMyProfile = async (): Promise<UserDetail> => {
+  const response = await fetch(`${API_BASE_URL}/${TEAM_ID}/users/me`, {
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to fetch my profile');
+  }
+
+  return response.json();
+};
+
+export interface UpdateUserData {
+  nickname?: string;
+  description?: string;
+  image?: string;
+}
+
+// 내 정보 수정
+export const updateMyProfile = async (data: UpdateUserData): Promise<User> => {
+  const response = await fetch(`${API_BASE_URL}/${TEAM_ID}/users/me`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to update profile');
+  }
+
+  return response.json();
+};
+
+export interface ImageUploadResponse {
+  url: string;
+}
+
+// 이미지 업로드
+export const uploadImage = async (imageFile: File): Promise<ImageUploadResponse> => {
+  const formData = new FormData();
+  formData.append('image', imageFile);
+
+  const response = await fetch(`${API_BASE_URL}/${TEAM_ID}/images/upload`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to upload image');
+  }
+
+  return response.json();
+};
