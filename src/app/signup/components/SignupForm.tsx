@@ -57,7 +57,8 @@ export default function SignupForm() {
           label='이메일'
           type='email'
           placeholder='이메일을 입력해 주세요'
-          size='lg'
+          size='sm'
+          className='md:w-[440px] md:h-[55px] lg:w-[640px] lg:h-[70px]'
           {...register('email')}
           variant={errors.email ? 'error' : 'default'}
           errorMessage={errors.email?.message}
@@ -69,7 +70,8 @@ export default function SignupForm() {
           type='text'
           placeholder='닉네임을 입력해 주세요'
           helperText='최대 10자 가능'
-          size='lg'
+          size='sm'
+          className='md:w-[440px] md:h-[55px] lg:w-[640px] lg:h-[70px]'
           {...register('nickname')}
           variant={errors.nickname ? 'error' : 'default'}
           errorMessage={errors.nickname?.message}
@@ -81,7 +83,8 @@ export default function SignupForm() {
           type='password'
           placeholder='비밀번호를 입력해 주세요'
           helperText='최소 8자 이상'
-          size='lg'
+          size='sm'
+          className='md:w-[440px] md:h-[55px] lg:w-[640px] lg:h-[70px]'
           {...register('password')}
           variant={errors.password ? 'error' : 'default'}
           errorMessage={errors.password?.message}
@@ -92,14 +95,20 @@ export default function SignupForm() {
           label='비밀번호 확인'
           type='password'
           placeholder='비밀번호를 한번 더 입력해 주세요'
-          size='lg'
+          size='sm'
+          className='md:w-[440px] md:h-[55px] lg:w-[640px] lg:h-[70px]'
           {...register('confirmPassword')}
           variant={errors.confirmPassword ? 'error' : 'default'}
           errorMessage={errors.confirmPassword?.message}
         />
 
         {/* 가입하기 버튼 */}
-        <Button type='submit' variant='primary' size='lg' className='w-full mt-8'>
+        <Button
+          type='submit'
+          variant='primary'
+          size='sm'
+          className='w-[335px] md:w-[440px] md:h-[55px] lg:w-[640px] lg:h-[65px] mt-8'
+        >
           가입하기
         </Button>
       </form>

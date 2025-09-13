@@ -17,7 +17,7 @@ export default function SigninPage() {
   }, [isLoggedIn, router]);
 
   return (
-    <div className='min-h-screen bg-[#1C1C22] flex items-center justify-center px-4'>
+    <div className='min-h-screen bg-[#1C1C22] flex items-center justify-center px-4 md:px-8'>
       <div className=''>
         {/* 로그인 폼 */}
         <LoginForm />

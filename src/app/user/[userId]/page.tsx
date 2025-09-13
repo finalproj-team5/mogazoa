@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { getUserProfile, UserDetail, followUser, unfollowUser } from '@/lib/user/userApi';
 import {
@@ -18,8 +18,17 @@ import usePageInfiniteScroll from '@/hooks/usePageInfiniteScroll';
 
 const UserProfilePage = () => {
   const params = useParams();
+  const router = useRouter();
   const userId = params.userId as string;
   const { user } = useAuthStore();
+
+  // 로그인한 사용자가 자신의 프로필 페이지에 접근하면 마이페이지로 리다이렉트
+  useEffect(() => {
+    if (user && user.id.toString() === userId) {
+      router.replace('/mypage');
+      return;
+    }
+  }, [user, userId, router]);
   const [profile, setProfile] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
