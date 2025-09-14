@@ -18,6 +18,6 @@ export const postImageUpload = async (imageFile: File): Promise<UrlResponse> => 
 
 export const usePostImageUpload = () => {
   return useMutation({
-    mutationFn: ({ imageFile }: { imageFile: File }) => postImageUpload(imageFile),
+    mutationFn: (imageFile: File) => postImageUpload(imageFile),
   });
 };

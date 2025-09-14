@@ -7,7 +7,9 @@ import { Product } from '@/types/ProductList';
 import { getProductList } from '@/api/categories/getProductList';
 import { useQuery } from '@tanstack/react-query';
 import { usePostImageUpload } from '@/lib/UploadImage';
+import { useAddProduct } from '@/lib/addProduct';
 import Dialog from './common/Dialog';
+import Image from 'next/image';
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -21,10 +23,10 @@ const AddProductModal = ({ isOpen, onClose }: AddProductModalProps) => {
   const [selectedCategory, SetSelectedCategory] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  // const [imageUrl, setImageUrl] = useState<string | null>('');
+  const [imageUrl, setImageUrl] = useState<string | null>('');
 
-  const { mutate } = usePostImageUpload();
+  const { mutate: uploadImage, isPending: isUploading } = usePostImageUpload();
+  const { mutate: addProduct, isPending: isAddingProduct } = useAddProduct();
 
   const { data: searchData } = useQuery({
     queryKey: ['searchProducts', query],
@@ -33,12 +35,6 @@ const AddProductModal = ({ isOpen, onClose }: AddProductModalProps) => {
   });
 
   const searchResult: Product[] = searchData?.list ?? [];
-
-  // 업로드 함수
-  const handleUpload = () => {
-    if (!file) return;
-    mutate({ imageFile: file });
-  };
 
   //제출함수
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,17 +49,32 @@ const AddProductModal = ({ isOpen, onClose }: AddProductModalProps) => {
     }
     if (!description) {
       alert('상품설명을 입력해주세요');
+      return;
+    }
+    if (!imageUrl) {
+      alert('이미지를 업로드 해주세요.');
+      return;
     }
 
-    // const payload = {
-    //   categoryId: selectedCategory,
-    //   image: 1,
-    //   description: description,
-    //   name: query,
-    // };
+    const payload = {
+      categoryId: Number(selectedCategory),
+      image: imageUrl as string,
+      description: description,
+      name: query,
+    };
+
+    addProduct(payload, {
+      onSuccess: () => {
+        alert('상품이 성공적으로 추가되었습니다.');
+        onClose(); // 모달 닫기
+      },
+      onError: (error) => {
+        alert(error.message); // 에러 메시지 표시
+      },
+    });
   };
 
-  //카테고리 호출
+  // 카테고리 호출
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -143,17 +154,47 @@ const AddProductModal = ({ isOpen, onClose }: AddProductModalProps) => {
             </div>
 
             {/* 사진 */}
-            <input
-              type='file'
-              accept='image/*'
-              onChange={(e) => {
-                const selectedFile = e.target.files?.[0];
-                if (!selectedFile) return;
-                setFile(selectedFile);
-                mutate({ imageFile: selectedFile });
-              }}
-            />
-            <button onClick={handleUpload}></button>
+            <div className='flex flex-col items-center gap-2'>
+              <label
+                htmlFor='image-upload'
+                className='cursor-pointer w-32 h-32 bg-[#252530] border-2 border-dashed border-[#353542] rounded-lg flex 
+                items-center justify-center text-gray-400 hover:bg-[#353542] hover:border-gray-400 transition-colors relative'
+              >
+                {isUploading ? (
+                  <span>업로드중...</span>
+                ) : imageUrl ? (
+                  <Image
+                    src={imageUrl}
+                    alt='미리보기'
+                    fill
+                    sizes='(max-width: 768px) 100vw, (max-width:1200px) 50vw, 33vw'
+                    style={{ objectFit: 'cover', borderRadius: '8px' }}
+                  />
+                ) : (
+                  <span>+ 이미지 추가</span>
+                )}
+              </label>
+              <input
+                id='image-upload'
+                type='file'
+                accept='image/*'
+                className='hidden'
+                onChange={(e) => {
+                  const selectedFile = e.target.files?.[0];
+                  if (selectedFile) {
+                    uploadImage(selectedFile, {
+                      onSuccess: (data) => {
+                        setImageUrl(data.url);
+                      },
+                      onError: (error) => {
+                        alert('이미지 업로드 실패');
+                        console.log(error);
+                      },
+                    });
+                  }
+                }}
+              />
+            </div>
           </div>
 
           {/* 상품 설명 */}
@@ -172,9 +213,10 @@ const AddProductModal = ({ isOpen, onClose }: AddProductModalProps) => {
           {/* 추가하기 버튼 */}
           <button
             type='submit'
+            disabled={isUploading}
             className='w-full py-3 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg text-lg font-semibold'
           >
-            추가하기
+            {isAddingProduct ? '추가 중 .....' : '추가하기'}
           </button>
         </div>
       </form>
