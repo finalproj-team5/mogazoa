@@ -8,6 +8,7 @@ import { getCategories } from '@/api/categories/getCategories';
 import { useEffect, useState } from 'react';
 import { Category } from '@/types/Category';
 import { useGetProducts } from '@/api/categories/getProductList';
+import { useSearchStore } from '@/lib/useSearchStore';
 
 const Home = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -17,6 +18,7 @@ const Home = () => {
   const { data, isLoading, isError } = useGetProducts();
 
   const products = data?.list ?? [];
+  const keyword = useSearchStore((state) => state.keyword);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -31,9 +33,12 @@ const Home = () => {
   }, []);
 
   // 카테고리별 필터링
-  const filteredProducts = selectedCategoryId
-    ? products.filter((p) => p.categoryId === selectedCategoryId)
-    : products;
+
+  const filteredProducts = products.filter((p) => {
+    const matchCategory = selectedCategoryId ? p.categoryId === selectedCategoryId : true;
+    const matchKeyword = keyword ? p.name.toLowerCase().includes(keyword.toLowerCase()) : true;
+    return matchCategory && matchKeyword;
+  });
 
   // 핫상품 (리뷰 많은 순 상위 6개)
   const hotProducts = [...products]
@@ -77,7 +82,7 @@ const Home = () => {
                 ? `${categories.find((c) => c.id === selectedCategoryId)?.name ?? ''}의 모든 상품`
                 : '지금 핫한 상품'
             }
-            products={selectedCategoryId ? filteredProducts : hotProducts}
+            products={keyword || selectedCategoryId ? filteredProducts : hotProducts}
           />
         </div>
       </section>
