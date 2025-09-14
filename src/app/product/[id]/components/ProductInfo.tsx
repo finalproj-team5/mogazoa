@@ -43,11 +43,11 @@ export default function ProductInfo({ product, onReviewSubmit }: Props) {
       </div>
       <p className='text-gray-400 leading-relaxed text-sm md:text-base'>{product.description}</p>
 
-      <div className='grid grid-cols-3 items-center gap-4 pt-4'>
-        <div className='col-span-2'>
+      <div className='grid grid-cols-1 sm:grid-cols-3 items-center gap-4 pt-4'>
+        <div className='w-full sm:col-span-2'>
           <ReviewForm product={product} onReviewSubmit={onReviewSubmit} />
         </div>
-        <div className='col-span-1'>
+        <div className='w-full sm:col-span-1'>
           <Link href='/compare'>
             <Button
               variant='tertiary'

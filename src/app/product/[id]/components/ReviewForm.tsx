@@ -11,7 +11,6 @@ import {
   DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { Star, ImagePlus, X } from 'lucide-react';
 import Image from 'next/image';
 
@@ -22,24 +21,27 @@ interface Props {
   };
   onReviewSubmit: (newReview: { rating: number; content: string; imageUrls?: string[] }) => void;
 }
+
 export default function ReviewForm({ product, onReviewSubmit }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [reviewText, setReviewText] = useState('');
   const [rating, setRating] = useState(0);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
 
+  const REVIEW_MAX = 300;
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && previewImages.length < 3) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewImages([...previewImages, reader.result as string]);
+        setPreviewImages((prev) => [...prev, reader.result as string]);
       };
       reader.readAsDataURL(file);
     }
   };
   const removeImage = (indexToRemove: number) => {
-    setPreviewImages(previewImages.filter((_, index) => index !== indexToRemove));
+    setPreviewImages((prev) => prev.filter((_, i) => i !== indexToRemove));
   };
 
   const handleSubmit = () => {
@@ -58,21 +60,21 @@ export default function ReviewForm({ product, onReviewSubmit }: Props) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className='w-full h-12 rounded-lg bg-gradient-to-r from-[#5097FA] to-[#5363FF] text-white font-semibold transition-transform hover:scale-105'>
+        <Button className='w-full h-12 rounded-lg bg-gradient-to-r from-[#5097FA] to-[#5363FF] text-white font-semibold'>
           리뷰 작성하기
         </Button>
       </DialogTrigger>
 
-      <DialogContent className='sm:max-w-lg rounded-xl bg-[#2C2C3A] border-gray-700 text-white flex flex-col p-8'>
+      <DialogContent className='sm:max-w-lg rounded-xl bg-[#2C2C3A] border-gray-700 text-white flex flex-col p-6'>
         <DialogHeader className='text-left'>
           <span className='text-sm font-semibold text-green-400'>{product.category}</span>
           <DialogTitle className='text-2xl font-bold text-white mt-1'>{product.name}</DialogTitle>
         </DialogHeader>
 
-        <DialogClose className='absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100'></DialogClose>
+        <DialogClose className='absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100' />
 
-        <div className='py-6 space-y-6'>
-          <div className='flex'>
+        <div className='mt-4 flex flex-col gap-4'>
+          <div className='flex items-center gap-2'>
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
@@ -87,14 +89,20 @@ export default function ReviewForm({ product, onReviewSubmit }: Props) {
             ))}
           </div>
 
-          <div className='relative'>
-            <Textarea
-              placeholder='이곳에 리뷰를 작성해주세요.'
+          <div className='relative w-full'>
+            <textarea
+              placeholder='리뷰를 작성해 주세요'
               value={reviewText}
-              onChange={(e) => setReviewText(e.target.value)}
-              className='h-40 bg-gray-800 border-gray-600 text-white placeholder-gray-500 resize-none p-4 pr-68 w-full'
-              maxLength={300}
+              onChange={(e) => {
+                setReviewText(e.target.value);
+                console.log('리뷰값:', e.target.value);
+              }}
+              maxLength={REVIEW_MAX}
+              className='min-h-[140px] w-full box-border bg-gray-800 border border-gray-700 focus:border-blue-500 focus:ring-0 text-white placeholder-gray-500 resize-none p-4 pr-14 rounded-lg'
             />
+            <span className='absolute bottom-3 right-3 text-xs text-gray-400 select-none'>
+              {reviewText.length}/{REVIEW_MAX}
+            </span>
           </div>
 
           <div className='flex items-center gap-4'>
@@ -103,8 +111,8 @@ export default function ReviewForm({ product, onReviewSubmit }: Props) {
                 <Image
                   src={image}
                   alt={`미리보기 ${index + 1}`}
-                  layout='fill'
-                  objectFit='cover'
+                  fill
+                  style={{ objectFit: 'cover' }}
                   className='rounded-lg'
                 />
                 <button
@@ -134,7 +142,7 @@ export default function ReviewForm({ product, onReviewSubmit }: Props) {
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className='mt-4'>
           <Button
             type='button'
             onClick={handleSubmit}
