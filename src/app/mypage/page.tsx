@@ -1,8 +1,14 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
-import { getUserProfile, UserDetail, followUser, unfollowUser } from '@/lib/user/userApi';
+import { useRouter } from 'next/navigation';
+import {
+  UserDetail,
+  getMyProfile,
+  updateMyProfile,
+  uploadImage,
+  UpdateUserData,
+} from '@/lib/user/userApi';
 import {
   getUserReviewedProducts,
   getUserCreatedProducts,
@@ -15,28 +21,23 @@ import { useAuthStore } from '@/lib/stores/authStore';
 import FollowModal from '@/components/user/FollowModal';
 import NoProfileIcon from '@/assets/images/no_profile.svg';
 import usePageInfiniteScroll from '@/hooks/usePageInfiniteScroll';
+import ProfileEditModal from '@/components/mypage/ProfileEditModal';
+import useModal from '@/hooks/useModal';
 
-const UserProfilePage = () => {
-  const params = useParams();
+const MyPage = () => {
   const router = useRouter();
-  const userId = params.userId as string;
-  const { user } = useAuthStore();
-
-  // 로그인한 사용자가 자신의 프로필 페이지에 접근하면 마이페이지로 리다이렉트
-  useEffect(() => {
-    if (user && user.id.toString() === userId) {
-      router.replace('/mypage');
-      return;
-    }
-  }, [user, userId, router]);
+  const { user, logout } = useAuthStore();
   const [profile, setProfile] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [followLoading, setFollowLoading] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [toast, setToast] = useState<{ message: string; show: boolean }>({
     message: '',
     show: false,
   });
+
+  // 프로필 편집 모달
+  const profileEditModal = useModal();
 
   // 팔로우 모달 상태
   const [followModal, setFollowModal] = useState<{
@@ -53,20 +54,26 @@ const UserProfilePage = () => {
   // fetchFunction들을 useCallback으로 메모이제이션
   const fetchReviewedProducts = useCallback(
     (cursor: number | null) =>
-      getUserReviewedProducts(parseInt(userId), cursor ? { cursor } : undefined),
-    [userId],
+      user?.id
+        ? getUserReviewedProducts(parseInt(user.id), cursor ? { cursor } : undefined)
+        : Promise.resolve({ list: [], nextCursor: null }),
+    [user?.id],
   );
 
   const fetchCreatedProducts = useCallback(
     (cursor: number | null) =>
-      getUserCreatedProducts(parseInt(userId), cursor ? { cursor } : undefined),
-    [userId],
+      user?.id
+        ? getUserCreatedProducts(parseInt(user.id), cursor ? { cursor } : undefined)
+        : Promise.resolve({ list: [], nextCursor: null }),
+    [user?.id],
   );
 
   const fetchFavoriteProducts = useCallback(
     (cursor: number | null) =>
-      getUserFavoriteProducts(parseInt(userId), cursor ? { cursor } : undefined),
-    [userId],
+      user?.id
+        ? getUserFavoriteProducts(parseInt(user.id), cursor ? { cursor } : undefined)
+        : Promise.resolve({ list: [], nextCursor: null }),
+    [user?.id],
   );
 
   // 무한스크롤 훅들
@@ -82,13 +89,25 @@ const UserProfilePage = () => {
     fetchFunction: fetchFavoriteProducts,
   });
 
-  // 모든 탭이 무한스크롤을 사용하므로 기존 상태 제거
+  // Hydration 완료 체크
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
+      if (!isHydrated) return; // Hydration이 완료될 때까지 대기
+
+      if (!user?.id) {
+        setError('로그인이 필요합니다.');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
-        const data = await getUserProfile(userId);
+        // 마이페이지이므로 내 정보 조회 API 사용
+        const data = await getMyProfile();
         setProfile(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load profile');
@@ -97,28 +116,24 @@ const UserProfilePage = () => {
       }
     };
 
-    if (userId) {
-      fetchProfile();
-    }
-  }, [userId]);
+    fetchProfile();
+  }, [user?.id, isHydrated]);
 
-  // 모든 탭이 무한스크롤을 사용하므로 기존 상품 로드 제거
-
-  // 무한스크롤 탭들 초기화
+  // 무한스크롤 탭들 초기화 (프로필이 처음 로드될 때만)
   useEffect(() => {
-    if (profile && activeTab === 'reviewed') {
+    if (profile && activeTab === 'reviewed' && reviewedProducts.items.length === 0) {
       reviewedProducts.reset();
     }
   }, [profile, activeTab]);
 
   useEffect(() => {
-    if (profile && activeTab === 'created') {
+    if (profile && activeTab === 'created' && createdProducts.items.length === 0) {
       createdProducts.reset();
     }
   }, [profile, activeTab]);
 
   useEffect(() => {
-    if (profile && activeTab === 'favorite') {
+    if (profile && activeTab === 'favorite' && favoriteProducts.items.length === 0) {
       favoriteProducts.reset();
     }
   }, [profile, activeTab]);
@@ -134,33 +149,48 @@ const UserProfilePage = () => {
     }, 1500);
   };
 
-  const handleFollow = async () => {
-    if (!profile || followLoading) return;
+  const handleEditProfile = () => {
+    profileEditModal.openModal();
+  };
 
-    // 자기 자신을 팔로우하려고 할 때 (user.id는 string, profile.id는 number이므로 문자열로 변환하여 비교)
-    if (user && user.id === profile.id.toString()) {
-      showToast('본인을 팔로우할 수 없습니다.');
-      return;
-    }
-
+  const handleSaveProfile = async (data: {
+    nickname: string;
+    description: string;
+    image: File | null;
+  }) => {
     try {
-      setFollowLoading(true);
-      if (profile.isFollowing) {
-        await unfollowUser(profile.id);
-        setProfile((prev) =>
-          prev ? { ...prev, followersCount: prev.followersCount - 1, isFollowing: false } : null,
-        );
-      } else {
-        await followUser(profile.id);
-        setProfile((prev) =>
-          prev ? { ...prev, followersCount: prev.followersCount + 1, isFollowing: true } : null,
-        );
+      const updateData: UpdateUserData = {
+        nickname: data.nickname,
+        description: data.description,
+      };
+
+      // 이미지가 있으면 먼저 업로드
+      if (data.image) {
+        const imageResponse = await uploadImage(data.image);
+        updateData.image = imageResponse.url;
       }
-    } catch (err) {
-      console.error('Failed to toggle follow:', err);
-    } finally {
-      setFollowLoading(false);
+
+      // 프로필 업데이트
+      await updateMyProfile(updateData);
+      showToast('프로필이 저장되었습니다.');
+
+      // 프로필 정보 다시 로드
+      const updatedProfile = await getMyProfile();
+      setProfile(updatedProfile);
+    } catch (error) {
+      console.error('프로필 저장 실패:', error);
+      showToast('프로필 저장에 실패했습니다.');
+      throw error; // 모달에서 에러 처리를 위해 throw
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    showToast('로그아웃되었습니다.');
+    // 홈페이지로 리다이렉트
+    setTimeout(() => {
+      router.push('/');
+    }, 1500); // 토스트 표시 후 리다이렉트
   };
 
   // 팔로우 모달 열기
@@ -173,7 +203,7 @@ const UserProfilePage = () => {
     setFollowModal({ isOpen: false, type: 'followers' });
   };
 
-  if (loading) {
+  if (loading || !isHydrated) {
     return (
       <div className='min-h-screen bg-[#0B0B0B] flex items-center justify-center'>
         <div className='text-[#F1F1F5]'>로딩 중...</div>
@@ -181,7 +211,7 @@ const UserProfilePage = () => {
     );
   }
 
-  if (error || !profile) {
+  if (error || !profile || !user) {
     return (
       <div className='min-h-screen bg-[#0B0B0B] flex items-center justify-center'>
         <div className='text-red-500'>{error || '프로필을 찾을 수 없습니다.'}</div>
@@ -191,11 +221,11 @@ const UserProfilePage = () => {
 
   return (
     <div className='min-h-screen bg-[#1C1C22] text-[#F1F1F5]'>
-      <div className='max-w-7xl mx-auto px-4 md:px-28 lg:px-4 py-8'>
-        <div className='flex flex-col lg:flex-row gap-6 md:gap-4 lg:gap-8'>
+      <div className='max-w-7xl mx-auto px-4 py-8'>
+        <div className='flex flex-col lg:flex-row gap-8'>
           {/* 좌측 프로필 섹션 */}
           <div className='w-full lg:w-[340px] flex-shrink-0'>
-            <div className='bg-[#21212A] rounded-xl p-6 lg:min-h-[500px] flex flex-col'>
+            <div className='bg-[#21212A] rounded-xl p-6 min-h-[500px] flex flex-col'>
               {/* 프로필 이미지 */}
               <div className='flex justify-center mb-8'>
                 <div className='w-[200px] h-[200px] rounded-full overflow-hidden bg-[#35353F]'>
@@ -246,50 +276,57 @@ const UserProfilePage = () => {
                 </div>
               </div>
 
-              {/* 팔로우 버튼 */}
-              <button
-                onClick={handleFollow}
-                disabled={followLoading}
-                className={`w-full py-4 rounded-lg font-medium transition-colors ${
-                  profile.isFollowing
-                    ? 'bg-[#35353F] text-[#F1F1F5] hover:bg-[#43434F]'
-                    : 'bg-[#5097FA] text-white hover:bg-[#4285E8]'
-                } disabled:opacity-50`}
-              >
-                {followLoading ? '로딩...' : profile.isFollowing ? '언팔로우' : '팔로우'}
-              </button>
+              {/* 프로필 편집/로그아웃 버튼들 */}
+              <div className='space-y-3'>
+                <button
+                  onClick={handleEditProfile}
+                  className='w-full py-4 rounded-lg font-medium transition-colors bg-[#5097FA] text-white hover:bg-[#4285E8]'
+                >
+                  프로필 편집
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className='w-full py-4 rounded-lg font-medium transition-colors bg-[#35353F] text-[#F1F1F5] hover:bg-[#43434F]'
+                >
+                  로그아웃
+                </button>
+              </div>
             </div>
           </div>
 
           {/* 우측 활동 내역 섹션 */}
           <div className='flex-1'>
             {/* 활동 내역 헤더 */}
-            <div className='mb-6 mt-8 md:mt-15 lg:mt-4'>
-              <h2 className='text-xl font-bold mb-6 md:mb-6 lg:mb-4'>활동 내역</h2>
+            <div className='mb-6'>
+              <h2 className='text-xl font-bold mb-4'>활동 내역</h2>
 
               {/* 통계 카드들 */}
-              <div className='flex flex-row gap-4 mb-20'>
-                <div className='bg-[#21212A] rounded-xl p-4 text-center w-full h-[128px] flex flex-col justify-center'>
-                  <div className='text-[#9FA0A7] text-sm lg:text-sm md:text-[14px] md:font-medium mb-2'>
-                    남긴
-                    <br className='md:hidden' />
-                    별점 평균
+              <div className='flex flex-row gap-4 mb-6'>
+                <div className='bg-[#21212A] rounded-xl p-4 text-center flex-1 lg:w-[300px] lg:flex-none h-[128px] flex flex-col justify-center'>
+                  <div className='text-[#9FA0A7] text-sm mb-2'>
+                    <span className='md:hidden'>
+                      남긴
+                      <br />
+                      별점 평균
+                    </span>
+                    <span className='hidden md:block'>남긴 별점 평균</span>
                   </div>
                   <div className='text-2xl font-bold text-[#FFD700]'>
                     ⭐ {profile.averageRating}
                   </div>
                 </div>
-                <div className='bg-[#21212A] rounded-xl p-4 text-center w-full h-[128px] flex flex-col justify-center'>
-                  <div className='text-[#9FA0A7] text-sm lg:text-sm md:text-[14px] md:font-medium mb-2'>
-                    남긴 리뷰
-                  </div>
+                <div className='bg-[#21212A] rounded-xl p-4 text-center flex-1 lg:w-[300px] lg:flex-none h-[128px] flex flex-col justify-center'>
+                  <div className='text-[#9FA0A7] text-sm mb-2'>남긴 리뷰</div>
                   <div className='text-2xl font-bold text-[#5097FA]'>📝 {profile.reviewCount}</div>
                 </div>
-                <div className='bg-[#21212A] rounded-xl p-4 text-center w-full h-[128px] flex flex-col justify-center'>
-                  <div className='text-[#9FA0A7] text-sm lg:text-sm md:text-[14px] md:font-medium mb-2'>
-                    관심
-                    <br className='md:hidden' />
-                    카테고리
+                <div className='bg-[#21212A] rounded-xl p-4 text-center flex-1 lg:w-[300px] lg:flex-none h-[128px] flex flex-col justify-center'>
+                  <div className='text-[#9FA0A7] text-sm mb-2'>
+                    <span className='md:hidden'>
+                      관심
+                      <br />
+                      카테고리
+                    </span>
+                    <span className='hidden md:block'>관심 카테고리</span>
                   </div>
                   <div className='text-lg font-medium text-[#00D2A3]'>
                     {profile.mostFavoriteCategory ? profile.mostFavoriteCategory.name : '없음'}
@@ -300,8 +337,7 @@ const UserProfilePage = () => {
 
             {/* 상품 목록 탭 */}
             <div className='mb-6'>
-              {/* PC용 탭 네비게이션 */}
-              <nav className='hidden lg:flex space-x-8'>
+              <nav className='flex space-x-8'>
                 <button
                   onClick={() => handleTabChange('reviewed')}
                   className={`py-2 px-1 text-xl whitespace-nowrap ${
@@ -333,35 +369,6 @@ const UserProfilePage = () => {
                   찜한 상품
                 </button>
               </nav>
-
-              {/* 태블릿/모바일용 드롭다운 */}
-              <div className='lg:hidden flex items-center'>
-                <select
-                  value={activeTab}
-                  onChange={(e) =>
-                    handleTabChange(e.target.value as 'reviewed' | 'created' | 'favorite')
-                  }
-                  className='bg-[#1C1C22] text-[#F1F1F5] text-xl font-semibold py-3 pr-2 pl-1 appearance-none cursor-pointer focus:outline-none'
-                >
-                  <option value='reviewed'>리뷰 남긴 상품</option>
-                  <option value='created'>등록한 상품</option>
-                  <option value='favorite'>찜한 상품</option>
-                </select>
-                {/* 드롭다운 화살표 */}
-                <svg
-                  className='w-5 h-5 text-[#9FA0A7]  pointer-events-none'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M19 9l-7 7-7-7'
-                  />
-                </svg>
-              </div>
             </div>
 
             {/* 상품 목록 내용 */}
@@ -384,7 +391,7 @@ const UserProfilePage = () => {
 
                 {/* 상품 목록 */}
                 {reviewedProducts.items.length > 0 && (
-                  <div className='grid grid-cols-2 lg:grid-cols-3 gap-4'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-2'>
                     {reviewedProducts.items.map((product) => (
                       <ProductCard
                         key={product.id}
@@ -402,29 +409,25 @@ const UserProfilePage = () => {
                   </div>
                 )}
 
-                {/* IntersectionObserver 타겟 */}
-                {reviewedProducts.hasMore && (
-                  <div
-                    ref={reviewedProducts.loadingElementRef}
-                    className='flex justify-center items-center py-8'
-                  >
-                    {reviewedProducts.isLoading ? (
-                      <>
-                        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#5097FA]'></div>
-                        <span className='ml-3 text-[#9FA0A7]'>상품을 불러오는 중...</span>
-                      </>
-                    ) : (
-                      <div className='h-4'></div>
-                    )}
+                {/* 로딩 상태 */}
+                {reviewedProducts.isLoading && (
+                  <div className='flex justify-center items-center py-8'>
+                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#5097FA]'></div>
+                    <span className='ml-3 text-[#9FA0A7]'>상품을 불러오는 중...</span>
                   </div>
                 )}
 
                 {/* 더 로드할 데이터가 없을 때 */}
-                {!reviewedProducts.hasMore && reviewedProducts.items.length > 0 && (
-                  <div className='text-center text-[#9FA0A7] py-8 text-sm'>
-                    모든 상품을 불러왔습니다.
-                  </div>
-                )}
+                {!reviewedProducts.hasMore &&
+                  reviewedProducts.items.length > 0 &&
+                  !reviewedProducts.isLoading && (
+                    <div className='text-center text-[#9FA0A7] py-8 text-sm'>
+                      모든 상품을 불러왔습니다.
+                    </div>
+                  )}
+
+                {/* IntersectionObserver를 위한 로딩 엘리먼트 */}
+                <div ref={reviewedProducts.loadingElementRef} className='h-4'></div>
               </div>
             ) : activeTab === 'created' ? (
               /* 무한스크롤 적용된 created 탭 */
@@ -443,7 +446,7 @@ const UserProfilePage = () => {
 
                 {/* 상품 목록 */}
                 {createdProducts.items.length > 0 && (
-                  <div className='grid grid-cols-2 lg:grid-cols-3 gap-4'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-2'>
                     {createdProducts.items.map((product) => (
                       <ProductCard
                         key={product.id}
@@ -461,29 +464,25 @@ const UserProfilePage = () => {
                   </div>
                 )}
 
-                {/* IntersectionObserver 타겟 */}
-                {createdProducts.hasMore && (
-                  <div
-                    ref={createdProducts.loadingElementRef}
-                    className='flex justify-center items-center py-8'
-                  >
-                    {createdProducts.isLoading ? (
-                      <>
-                        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#5097FA]'></div>
-                        <span className='ml-3 text-[#9FA0A7]'>상품을 불러오는 중...</span>
-                      </>
-                    ) : (
-                      <div className='h-4'></div>
-                    )}
+                {/* 로딩 상태 */}
+                {createdProducts.isLoading && (
+                  <div className='flex justify-center items-center py-8'>
+                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#5097FA]'></div>
+                    <span className='ml-3 text-[#9FA0A7]'>상품을 불러오는 중...</span>
                   </div>
                 )}
 
                 {/* 더 로드할 데이터가 없을 때 */}
-                {!createdProducts.hasMore && createdProducts.items.length > 0 && (
-                  <div className='text-center text-[#9FA0A7] py-8 text-sm'>
-                    모든 상품을 불러왔습니다.
-                  </div>
-                )}
+                {!createdProducts.hasMore &&
+                  createdProducts.items.length > 0 &&
+                  !createdProducts.isLoading && (
+                    <div className='text-center text-[#9FA0A7] py-8 text-sm'>
+                      모든 상품을 불러왔습니다.
+                    </div>
+                  )}
+
+                {/* IntersectionObserver를 위한 로딩 엘리먼트 */}
+                <div ref={createdProducts.loadingElementRef} className='h-4'></div>
               </div>
             ) : (
               /* 무한스크롤 적용된 favorite 탭 */
@@ -502,7 +501,7 @@ const UserProfilePage = () => {
 
                 {/* 상품 목록 */}
                 {favoriteProducts.items.length > 0 && (
-                  <div className='grid grid-cols-2 lg:grid-cols-3 gap-4'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-2'>
                     {favoriteProducts.items.map((product) => (
                       <ProductCard
                         key={product.id}
@@ -520,29 +519,25 @@ const UserProfilePage = () => {
                   </div>
                 )}
 
-                {/* IntersectionObserver 타겟 */}
-                {favoriteProducts.hasMore && (
-                  <div
-                    ref={favoriteProducts.loadingElementRef}
-                    className='flex justify-center items-center py-8'
-                  >
-                    {favoriteProducts.isLoading ? (
-                      <>
-                        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#5097FA]'></div>
-                        <span className='ml-3 text-[#9FA0A7]'>상품을 불러오는 중...</span>
-                      </>
-                    ) : (
-                      <div className='h-4'></div>
-                    )}
+                {/* 로딩 상태 */}
+                {favoriteProducts.isLoading && (
+                  <div className='flex justify-center items-center py-8'>
+                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#5097FA]'></div>
+                    <span className='ml-3 text-[#9FA0A7]'>상품을 불러오는 중...</span>
                   </div>
                 )}
 
                 {/* 더 로드할 데이터가 없을 때 */}
-                {!favoriteProducts.hasMore && favoriteProducts.items.length > 0 && (
-                  <div className='text-center text-[#9FA0A7] py-8 text-sm'>
-                    모든 상품을 불러왔습니다.
-                  </div>
-                )}
+                {!favoriteProducts.hasMore &&
+                  favoriteProducts.items.length > 0 &&
+                  !favoriteProducts.isLoading && (
+                    <div className='text-center text-[#9FA0A7] py-8 text-sm'>
+                      모든 상품을 불러왔습니다.
+                    </div>
+                  )}
+
+                {/* IntersectionObserver를 위한 로딩 엘리먼트 */}
+                <div ref={favoriteProducts.loadingElementRef} className='h-4'></div>
               </div>
             )}
           </div>
@@ -560,12 +555,20 @@ const UserProfilePage = () => {
       <FollowModal
         isOpen={followModal.isOpen}
         onClose={closeFollowModal}
-        userId={userId}
+        userId={user.id}
         nickname={profile?.nickname || ''}
         type={followModal.type}
       />
+
+      {/* 프로필 편집 모달 */}
+      {profileEditModal.renderModal(ProfileEditModal, {
+        currentNickname: profile?.nickname || '',
+        currentDescription: profile?.description || '',
+        currentImage: profile?.image || null,
+        onSave: handleSaveProfile,
+      })}
     </div>
   );
 };
 
-export default UserProfilePage;
+export default MyPage;
