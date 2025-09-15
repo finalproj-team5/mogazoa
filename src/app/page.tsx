@@ -45,6 +45,9 @@ const Home = () => {
     .sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0))
     .slice(0, 6);
 
+  //별점 높은 순 상위 6개
+  const topRatedProducts = [...products].sort((a, b) => b.rating - a.rating).slice(0, 6);
+
   if (isLoading) return <div>로딩중...</div>;
   if (isError) return <div>상품을 불러오는데 실패했습니다.</div>;
 
@@ -84,6 +87,11 @@ const Home = () => {
             }
             products={keyword || selectedCategoryId ? filteredProducts : hotProducts}
           />
+          {!keyword && !selectedCategoryId && (
+            <div className='mt-15 lg:mt-20 flex flex-col flex-1 min-w-0 lg:max-w-5xl'>
+              <ProductGrid title='별점높은순' products={topRatedProducts} />
+            </div>
+          )}
         </div>
       </section>
 
