@@ -1,15 +1,26 @@
 import { Product } from '@/types/Product';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const { name, reviewCount, rating, favoriteCount, image } = product;
+  const { id, name, reviewCount, rating, favoriteCount, image } = product;
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    if (id) {
+      router.push(`/product/${id}`);
+    }
+  };
 
   return (
-    <div className='p-2.5 md:pb-[10px] bg-[#252530] rounded-lg flex flex-col '>
+    <div
+      onClick={handleCardClick}
+      className='p-2.5 md:pb-[10px] bg-[#252530] rounded-lg flex flex-col cursor-pointer hover:bg-[#2A2A36] transition-colors duration-200'
+    >
       {/* 이미지 영역: 카드 폭에 맞춰 반응형, 비율 140:98 유지 */}
       <div className='w-full aspect-[140/98] mb-[10px] relative'>
         <Image src={image} alt={name} fill className='object-cover rounded-xl' />
