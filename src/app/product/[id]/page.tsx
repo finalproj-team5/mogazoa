@@ -15,9 +15,9 @@ export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
   const productId = (Array.isArray(params.id) ? params.id[0] : params.id) || '';
-  const { isLoggedIn } = useAuthStore();
+  const { isLoggedIn, user } = useAuthStore();
 
-  const { data: product, isLoading, isError } = useGetProduct(productId);
+  const { data: product, isLoading, isError, refetch } = useGetProduct(productId);
 
   const { mutate: toggleFavorite } = useToggleFavorite(productId);
 
@@ -50,16 +50,21 @@ export default function ProductPage() {
     <div className='bg-[#1C1C22] text-white min-h-screen'>
       <main className='max-w-screen-lg mx-auto px-4 sm:px-6 py-12'>
         <section className='grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8'>
-          <ProductImages product={product} />{' '}
+          <ProductImages product={product} />
           <ProductInfo
             product={{
+              id: product.id?.toString(),
               category: `카테고리 ID: ${product.categoryId}`,
               description: product.description ?? '',
               name: product.name,
+              imageUrl: product.image,
+              writerId: product.writerId, // 실제 API에서 받아온 작성자 ID
             }}
+            currentUserId={user ? parseInt(user.id) : undefined}
             onReviewSubmit={() => {}}
             isFavorited={!!product.isFavorited}
             onToggleFavorite={handleToggleFavorite}
+            onProductUpdate={() => refetch()}
           />
         </section>
         <ProductStats
