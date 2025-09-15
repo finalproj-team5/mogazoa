@@ -1,15 +1,11 @@
 import { useQuery, queryOptions } from '@tanstack/react-query';
 import { apiClient } from '@/lib/apiClient';
 import { ProductListResponse, GetProductsParams } from '@/types/ProductList';
-import { getAuthToken } from '@/lib/authApi';
 
 // 상품 목록 조회 API
 export const getProductList = async (params?: GetProductsParams): Promise<ProductListResponse> => {
   const response = await apiClient.get(`/products`, {
     params,
-    headers: {
-      Authorization: `Bearer ${getAuthToken}`,
-    },
   });
   return response.data;
 };
