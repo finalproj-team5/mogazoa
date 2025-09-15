@@ -3,6 +3,7 @@
 import { Heart, Share2 } from 'lucide-react';
 import ReviewForm from './ReviewForm';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 interface Props {
   product: {
@@ -10,9 +11,20 @@ interface Props {
     name: string;
     description: string;
   };
+  onReviewSubmit: (newReview: { rating: number; content: string; imageUrl?: string }) => void;
 }
 
-export default function ProductInfo({ product }: Props) {
+export default function ProductInfo({ product, onReviewSubmit }: Props) {
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      alert('링크가 클립보드에 복사되었습니다!');
+    } catch (error) {
+      console.error('클립보드 복사 실패:', error);
+      alert('링크를 복사하는 데 실패했습니다.');
+    }
+  };
+
   return (
     <div className='flex flex-col justify-center space-y-4'>
       <div>
@@ -24,21 +36,26 @@ export default function ProductInfo({ product }: Props) {
           <button className='hover:text-white transition-colors'>
             <Heart size={20} className='md:w-6 md:h-6' />
           </button>
-          <button className='hover:text-white transition-colors'>
+          <button onClick={handleShare} className='hover:text-white transition-colors'>
             <Share2 size={20} className='md:w-6 md:h-6' />
           </button>
         </div>
       </div>
       <p className='text-gray-400 leading-relaxed text-sm md:text-base'>{product.description}</p>
 
-      <div className='flex flex-col sm:flex-row items-center gap-4 gap-y-2 pt-4 flex-wrap'>
-        <div className='w-full sm:flex-[2]'>
-          <ReviewForm />
+      <div className='grid grid-cols-1 sm:grid-cols-3 items-center gap-4 pt-4'>
+        <div className='w-full sm:col-span-2'>
+          <ReviewForm product={product} onReviewSubmit={onReviewSubmit} />
         </div>
-        <div className='w-full sm:flex-[1]'>
-          <Button variant='secondary' size='md' className='w-full px-14 whitespace-nowrap'>
-            비교하기
-          </Button>
+        <div className='w-full sm:col-span-1'>
+          <Link href='/compare'>
+            <Button
+              variant='tertiary'
+              className='w-full h-12 border-[#5363FF] text-[#5363FF] hover:bg-blue-900/20 whitespace-nowrap'
+            >
+              비교하기
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

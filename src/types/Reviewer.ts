@@ -10,6 +10,15 @@ export interface Reviewer {
   updatedAt: string;
 }
 
-export interface ReviewersProps {
-  reviewers: Reviewer[];
+export interface Review {
+  id: number;
+  author: {
+    name: string;
+    avatarUrl: string;
+  };
+  rating: number;
+  content: string;
+  createdAt: string;
+  likes: number;
+  imageUrl?: string;
 }
