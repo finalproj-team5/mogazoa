@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '@/lib/stores/authStore';
+import { useSearchStore } from '@/lib/useSearchStore';
 
 import logoSvg from '../../assets/icons/logo.svg';
 import menuSvg from '../../assets/icons/menu.svg';
@@ -46,10 +47,10 @@ const Header = ({ className, ...props }: HeaderProps) => {
   const router = useRouter();
   const { isLoggedIn } = useAuthStore();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
   const [isMounted, setIsMounted] = useState(false);
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const keyword = useSearchStore((state) => state.keyword);
+  const setKeyword = useSearchStore((state) => state.setKeyword);
 
   useEffect(() => {
     setIsMounted(true);
@@ -58,9 +59,9 @@ const Header = ({ className, ...props }: HeaderProps) => {
   const variant = pathname === '/' ? 'home' : 'default';
 
   const handleSearch = () => {
-    if (searchValue.trim().length > 0) {
-      router.push(`/?keyword=${encodeURIComponent(searchValue.trim())}`);
-      setSearchValue('');
+    if (keyword.trim().length > 0) {
+      router.push(`/?keyword=${encodeURIComponent(keyword.trim())}`);
+      setKeyword('');
       setIsSearchOpen(false);
     }
   };
@@ -113,8 +114,8 @@ const Header = ({ className, ...props }: HeaderProps) => {
                   </div>
                   <input
                     type='text'
-                    value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder='상품 이름을 검색해 보세요'
                     autoFocus
@@ -158,8 +159,8 @@ const Header = ({ className, ...props }: HeaderProps) => {
                 </div>
                 <input
                   type='text'
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder='상품 이름을 검색해 보세요'
                   className='w-full h-11 rounded-full bg-[#2E2E3A] border-none pl-12 pr-5 text-sm text-white placeholder-[#7B7B87] focus:outline-none'

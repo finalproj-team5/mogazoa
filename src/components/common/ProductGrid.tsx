@@ -1,5 +1,6 @@
 import { ProductGridProps } from '@/types/Product';
 import ProductCard from '@/components/common/ProductCard';
+import Link from 'next/link';
 
 const ProductGrid = ({ title, products }: ProductGridProps) => {
   return (
@@ -16,7 +17,9 @@ const ProductGrid = ({ title, products }: ProductGridProps) => {
 
       <div className='grid grid-cols-2 gap-[15px] lg:gap-[20px] lg:grid-cols-3'>
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <Link key={product.id} href={`/product/${product.id}`}>
+            <ProductCard key={product.id} product={product} />
+          </Link>
         ))}
       </div>
     </>

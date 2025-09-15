@@ -8,13 +8,19 @@ import { getCategories } from '@/api/categories/getCategories';
 import { useEffect, useState } from 'react';
 import { Category } from '@/types/Category';
 import { useGetProducts } from '@/api/categories/getProductList';
+import { useSearchStore } from '@/lib/useSearchStore';
 
 const Home = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
   // 상품 목록 가져오기
-  const { data, isLoading, isError } = useGetProducts();
+  const keyword = useSearchStore((state) => state.keyword);
+
+  const { data, isLoading, isError } = useGetProducts({
+    keyword: keyword || undefined,
+    category: selectedCategoryId || undefined,
+  });
 
   const products = data?.list ?? [];
 
@@ -30,18 +36,10 @@ const Home = () => {
     fetchCategories();
   }, []);
 
-  // 카테고리별 필터링
-  const filteredProducts = selectedCategoryId
-    ? products.filter((p) => p.categoryId === selectedCategoryId)
-    : products;
-
-  // 핫상품 (리뷰 많은 순 상위 6개)
-  const hotProducts = [...products]
-    .sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0))
-    .slice(0, 6);
-
   if (isLoading) return <div>로딩중...</div>;
   if (isError) return <div>상품을 불러오는데 실패했습니다.</div>;
+
+  const isFiltered = keyword || selectedCategoryId;
 
   return (
     <main className='flex justify-between mt-5 gap-[30px]'>
@@ -77,8 +75,13 @@ const Home = () => {
                 ? `${categories.find((c) => c.id === selectedCategoryId)?.name ?? ''}의 모든 상품`
                 : '지금 핫한 상품'
             }
-            products={selectedCategoryId ? filteredProducts : hotProducts}
+            products={products}
           />
+          {!isFiltered && (
+            <div className='mt-15 lg:mt-20 flex flex-col flex-1 min-w-0 lg:max-w-5xl'>
+              <ProductGrid title='별점높은순' products={products} />
+            </div>
+          )}
         </div>
       </section>
 
