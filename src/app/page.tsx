@@ -16,8 +16,6 @@ const Home = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<'recent' | 'rating' | 'reviewCount'>('recent');
 
-  // 상품 목록 가져오기
-
   const keyword = useSearchStore((state) => state.keyword);
 
   const { data, isLoading, isError } = useGetProducts({
@@ -104,6 +102,7 @@ const Home = () => {
             title={getTitle()}
             products={defaultProducts}
             onOrderChange={setSelectedOrder}
+            showMoreButton={!isDefaultView}
           />
 
           {isDefaultView && <ProductGrid title='별점높은순' products={defaultProducts} />}
@@ -115,6 +114,13 @@ const Home = () => {
       <div className='hidden lg:block w-[250px] '>
         <ReviewerRanking />
       </div>
+      <button
+        onClick={() => alert('네트워크 오류가 생김')}
+        className='fixed bottom-10 right-10 w-16 h-16 bg-gradient-to-r from-[#5097FA] to-[#5363FF] rounded-full 
+        flex items-center justify-center text-white text-4xl shadow-lg transition hover:brightness-110 active:scale-95 cursor-pointer'
+      >
+        <span className='relative bottom-0.5'>+</span>
+      </button>
     </main>
   );
 };
