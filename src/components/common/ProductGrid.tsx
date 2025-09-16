@@ -12,7 +12,7 @@ const ProductGrid = ({ title, products, onOrderChange, showMoreButton }: Product
   };
   return (
     <>
-      <div className='flex items-center gap-2.5'>
+      <div className='flex justify-between gap-2.5'>
         <div className='flex gap-2.5'>
           <h1 className='text-[#F1F1F5] text-xl font-semibold'>{title}</h1>
 
