@@ -12,7 +12,7 @@ export interface Product {
 export interface ProductGridProps {
   title: string;
   products: Product[];
-  showMoreButton?: boolean;
+  onOrderChange?: (order: 'recent' | 'rating' | 'reviewCount') => void;
 }
 
 // 비교 페이지에서 각 상품(A, B)의 상태를 관리하기 위한 타입

@@ -14,7 +14,7 @@ import { useSearchStore } from '@/lib/useSearchStore';
 const Home = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  // const [selectedOrder, setSelectedOrder] = useState<'recent' | 'rating' | 'reviewCount'>('recent');
+  const [selectedOrder, setSelectedOrder] = useState<'recent' | 'rating' | 'reviewCount'>('recent');
 
   // 상품 목록 가져오기
 
@@ -23,7 +23,7 @@ const Home = () => {
   const { data, isLoading, isError } = useGetProducts({
     keyword: keyword || undefined,
     category: selectedCategoryId || undefined,
-    // order: selectedOrder,
+    order: selectedOrder,
   });
 
   const products = data?.list ?? [];
@@ -100,7 +100,11 @@ const Home = () => {
         {/* [상품 그리드] */}
 
         <div className='flex flex-col flex-1 min-w-0 lg:max-w-5xl gap-4 lg:gap-5'>
-          <ProductGrid title={getTitle()} products={defaultProducts} />
+          <ProductGrid
+            title={getTitle()}
+            products={defaultProducts}
+            onOrderChange={setSelectedOrder}
+          />
 
           {isDefaultView && <ProductGrid title='별점높은순' products={defaultProducts} />}
         </div>

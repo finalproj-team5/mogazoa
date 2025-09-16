@@ -4,7 +4,7 @@ import ProductCard from '@/components/common/ProductCard';
 
 import Link from 'next/link';
 
-const ProductGrid = ({ title, products }: ProductGridProps) => {
+const ProductGrid = ({ title, products, onOrderChange }: ProductGridProps) => {
   const Options = {
     recent: '최신순',
     rating: '별점순',
@@ -25,17 +25,16 @@ const ProductGrid = ({ title, products }: ProductGridProps) => {
         </div>
 
         <div className='w-40 inline-flex justify-between items-center'>
-          <select className="text-right justify-start text-gray-500 text-base font-normal font-['Pretendard']">
+          <select
+            className="text-right justify-start text-gray-500 text-base font-normal font-['Pretendard']"
+            onChange={(e) => onOrderChange?.(e.target.value as 'recent' | 'rating' | 'reviewCount')}
+          >
             {Object.entries(Options).map(([key, value]) => (
               <option key={key} value={key}>
                 {value}
               </option>
             ))}
           </select>
-
-          <div data-status='drop_down_300' className='w-6 h-6 relative overflow-hidden'>
-            <div className='w-2 h-1 left-[8.23px] top-[10.25px] absolute bg-gray-400' />
-          </div>
         </div>
       </div>
 
