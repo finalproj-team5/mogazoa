@@ -10,11 +10,16 @@ import { getCategories } from '@/api/categories/getCategories';
 import { Category } from '@/types/Category';
 import { useGetProducts } from '@/api/categories/getProductList';
 import { useSearchStore } from '@/lib/useSearchStore';
+import useModal from '@/hooks/useModal';
+import AddProductModal from '@/components/AddProudctModal';
 
 const Home = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<'recent' | 'rating' | 'reviewCount'>('recent');
+  const [name, setName] = useState('진');
+
+  const addProductModal = useModal();
 
   const keyword = useSearchStore((state) => state.keyword);
 
@@ -66,6 +71,11 @@ const Home = () => {
     return '지금 핫한 상품';
   };
 
+  const handleAddProduct = () => {
+    setName('상');
+    addProductModal.openModal();
+  };
+
   return (
     <main className='flex justify-between mt-5 gap-[30px]'>
       {/* PC/tablet 카테고리 */}
@@ -115,12 +125,13 @@ const Home = () => {
         <ReviewerRanking />
       </div>
       <button
-        onClick={() => alert('네트워크 오류가 생김')}
+        onClick={handleAddProduct}
         className='fixed bottom-10 right-10 w-16 h-16 bg-gradient-to-r from-[#5097FA] to-[#5363FF] rounded-full 
         flex items-center justify-center text-white text-4xl shadow-lg transition hover:brightness-110 active:scale-95 cursor-pointer'
       >
         <span className='relative bottom-0.5'>+</span>
       </button>
+      {addProductModal.renderModal(AddProductModal, { currentNickName: name })}
     </main>
   );
 };
