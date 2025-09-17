@@ -7,6 +7,7 @@ export interface Product {
   reviewCount?: number;
   favoriteCount?: number;
   categoryId: number;
+  isFavorited?: boolean;
 }
 
 export interface ProductGridProps {

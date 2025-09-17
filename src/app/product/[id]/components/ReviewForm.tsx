@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -8,10 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogTrigger,
+  // DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
-import { Star, ImagePlus, X } from 'lucide-react';
+import { Star, ImagePlus, X, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 interface Props {
@@ -20,24 +21,49 @@ interface Props {
     name: string;
   };
   onReviewSubmit: (newReview: { rating: number; content: string; imageUrls?: string[] }) => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export default function ReviewForm({ product, onReviewSubmit }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function ReviewForm({ product, onReviewSubmit, isOpen, onOpenChange }: Props) {
   const [reviewText, setReviewText] = useState('');
   const [rating, setRating] = useState(0);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const REVIEW_MAX = 300;
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && previewImages.length < 3) {
+    if (!file || previewImages.length >= 3) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.post(`https://mogazoa-api.vercel.app/16-5/images`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const imageUrl = response.data.url;
+      setUploadedImageUrls((prev) => [...prev, imageUrl]);
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImages((prev) => [...prev, reader.result as string]);
       };
       reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error);
+      alert('이미지 업로드에 실패했습니다.');
+    } finally {
+      setIsUploading(false);
     }
   };
   const removeImage = (indexToRemove: number) => {
@@ -49,22 +75,21 @@ export default function ReviewForm({ product, onReviewSubmit }: Props) {
       alert('별점과 리뷰 내용을 모두 입력해주세요.');
       return;
     }
-    onReviewSubmit({ rating, content: reviewText, imageUrls: previewImages });
+    onReviewSubmit({ rating, content: reviewText, imageUrls: uploadedImageUrls });
 
-    setIsOpen(false);
+    onOpenChange(false);
     setReviewText('');
     setRating(0);
     setPreviewImages([]);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      {/* <DialogTrigger asChild>
         <Button className='w-full h-12 rounded-lg bg-gradient-to-r from-[#5097FA] to-[#5363FF] text-white font-semibold'>
           리뷰 작성하기
         </Button>
-      </DialogTrigger>
-
+      </DialogTrigger> */}
       <DialogContent className='sm:max-w-lg rounded-xl bg-[#2C2C3A] border-gray-700 text-white flex flex-col p-6'>
         <DialogHeader className='text-left'>
           <span className='text-sm font-semibold text-green-400'>{product.category}</span>
@@ -129,13 +154,18 @@ export default function ReviewForm({ product, onReviewSubmit }: Props) {
                 htmlFor='image-upload'
                 className='relative flex items-center justify-center h-24 w-24 rounded-lg border border-dashed border-gray-600 bg-gray-800 cursor-pointer'
               >
-                <ImagePlus size={24} className='text-gray-400' />
+                {isUploading ? (
+                  <Loader2 size={24} className='text-gray-400 animate-spin' />
+                ) : (
+                  <ImagePlus size={24} className='text-gray-400' />
+                )}
                 <input
                   id='image-upload'
                   type='file'
                   accept='image/*'
                   onChange={handleImageChange}
                   className='hidden'
+                  disabled={isUploading}
                 />
               </label>
             )}
