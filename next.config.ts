@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       'picsum.photos',
       'gdimg.gmarket.co.kr',
       'i.namu.wiki',
+      'example.com',
     ],
   },
 };
